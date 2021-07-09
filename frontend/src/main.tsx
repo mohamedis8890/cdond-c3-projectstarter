@@ -7,7 +7,7 @@ import Root from './app';
 import history from './browserHistory';
 
 // prepare store
-const store = configureStore(history);
+const store = configureStore(history)X;
 
 ReactDOM.render(
   <Provider store={store}>

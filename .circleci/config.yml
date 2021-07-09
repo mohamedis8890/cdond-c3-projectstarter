@@ -104,6 +104,7 @@ jobs:
           name: frontend vulnerability check
           command: |
             cd frontend
+            npm i
             npm audit --audit-level=critical
 
   scan-backend:
@@ -117,6 +118,7 @@ jobs:
           name: backend vulnerability check
           command: |
             cd backend
+            npm i
             npm audit --audit-level=critical
 
 #   deploy-infrastructure:

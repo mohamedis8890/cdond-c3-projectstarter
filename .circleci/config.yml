@@ -164,6 +164,10 @@ jobs:
           name: print inventory
           command: |
             cat .circleci/ansible/inventory.txt
+      - run:
+          name: install tar
+          command: |
+            apt-get update && apt-get install -y tar
       - persist_to_workspace:
           root: ~/
           paths:

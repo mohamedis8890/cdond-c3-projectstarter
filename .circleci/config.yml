@@ -134,8 +134,8 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      # - image: amazon/aws-cli
-      - image: circleci/awscli:latest
+      - image: amazon/aws-cli:latest
+      # - image: circleci/awscli:latest
     steps:
       - checkout
       - run:
@@ -165,6 +165,13 @@ jobs:
           name: print inventory
           command: |
             cat .circleci/ansible/inventory.txt
+      # - run:
+      #     name: Add back-end public dns address to memstash
+      #     command: |
+      #       aws ec2 describe-instances \
+      #         --query 'Reservations[*].Instances[*].PublicDnsName' \
+      #         --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
+              # --output text >> .circleci/ansible/inventory.txt # TODO: change this line to use memstash
       - persist_to_workspace:
           root: ~/
           paths:

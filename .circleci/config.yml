@@ -52,6 +52,10 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
+      - persist_to_workspace:
+          root: frontend/
+          paths:
+            - dist
       - slack/notify:
           event: fail
           mentions: "#udapeople"
@@ -73,6 +77,10 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+      - persist_to_workspace:
+          root: backend/
+          paths:
+            - dist
       - slack/notify:
           event: fail
           mentions: "#udapeople"
@@ -194,6 +202,8 @@ jobs:
           command: |
             apk add --update ansible
             apk update && apk add curl curl-dev bash
+      - attach_workspace:
+          at: ~/
       - run:
           name: Configure server
           command: |

@@ -193,6 +193,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
+            apk update && apk add curl curl-dev bash
       - run:
           name: Configure server
           command: |

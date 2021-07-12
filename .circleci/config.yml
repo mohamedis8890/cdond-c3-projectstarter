@@ -168,7 +168,7 @@ jobs:
       - run:
           name: save inventory
           command: |
-            INVENTORY = `cat .circleci/ansible/inventory.txt`
+            INVENTORY=`cat .circleci/ansible/inventory.txt`
             curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data $INVENTORY https://api.memstash.io/values/data
 
       # - run:

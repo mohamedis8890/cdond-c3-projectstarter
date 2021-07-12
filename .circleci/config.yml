@@ -134,7 +134,7 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: amazon/aws-cli:latest
+      - image: amazon/aws-cli
       # - image: circleci/awscli:latest
     steps:
       - checkout
@@ -168,7 +168,7 @@ jobs:
       - run:
           name: add tar to enable persist_to_workspace
           command: |
-            apk add tar
+            dnf install tar
       # - run:
       #     name: Add back-end public dns address to memstash
       #     command: |

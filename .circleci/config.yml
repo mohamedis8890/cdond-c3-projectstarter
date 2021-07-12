@@ -169,7 +169,7 @@ jobs:
           name: save inventory
           command: |
             INVENTORY=`cat .circleci/ansible/inventory.txt`
-            curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data $INVENTORY https://api.memstash.io/values/data
+            curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data "$INVENTORY" https://api.memstash.io/values/data
 
       - run:
           name: Add back-end public dns address to memstash
@@ -179,7 +179,7 @@ jobs:
               --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
               --output text > PUBLICDNS
             
-            curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data $PUBLICDNS https://api.memstash.io/values/PUBLICDNS
+            curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data "$PUBLICDNS" https://api.memstash.io/values/PUBLICDNS
       # Here's where you will add some code to rollback on failure      
 
   configure-infrastructure:

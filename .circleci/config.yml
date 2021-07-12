@@ -138,29 +138,29 @@ jobs:
       # - image: circleci/awscli:latest
     steps:
       - checkout
-      # - run:
-      #     name: Ensure back-end infrastructure exists
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/backend.yml \
-      #         --tags project=UdaPeople \
-      #         --stack-name UdaPeople-BE-$CIRCLE_WORKFLOW_ID \
-      #         --parameter-overrides ID=$CIRCLE_WORKFLOW_ID  
-      # - run:
-      #     name: Ensure front-end infrastructure exist
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/frontend.yml \
-      #         --tags project=UdaPeople \
-      #         --stack-name UdaPeople-FE-$CIRCLE_WORKFLOW_ID \
-      #         --parameter-overrides ID=$CIRCLE_WORKFLOW_ID 
-      # - run:
-      #     name: Add back-end ip to ansible inventory
-      #     command: |
-      #       aws ec2 describe-instances \
-      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #         --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
-      #         --output text >> .circleci/ansible/inventory.txt
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=UdaPeople \
+              --stack-name UdaPeople-BE-$CIRCLE_WORKFLOW_ID \
+              --parameter-overrides ID=$CIRCLE_WORKFLOW_ID  
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=UdaPeople \
+              --stack-name UdaPeople-FE-$CIRCLE_WORKFLOW_ID \
+              --parameter-overrides ID=$CIRCLE_WORKFLOW_ID 
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
+              --output text >> .circleci/ansible/inventory.txt
       - run:
           name: print inventory
           command: |
@@ -171,17 +171,15 @@ jobs:
             INVENTORY=`cat .circleci/ansible/inventory.txt`
             curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data $INVENTORY https://api.memstash.io/values/data
 
-      # - run:
-      #     name: Add back-end public dns address to memstash
-      #     command: |
-      #       aws ec2 describe-instances \
-      #         --query 'Reservations[*].Instances[*].PublicDnsName' \
-      #         --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
-              # --output text >> .circleci/ansible/inventory.txt # TODO: change this line to use memstash
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/ansible/inventory.txt
+      - run:
+          name: Add back-end public dns address to memstash
+          command: |
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
+              --filters "Name=tag:Name,Values=backend-$CIRCLE_WORKFLOW_ID" \
+              --output text > PUBLICDNS
+            
+            curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request PUT --data $PUBLICDNS https://api.memstash.io/values/PUBLICDNS
       # Here's where you will add some code to rollback on failure      
 
   configure-infrastructure:
@@ -191,9 +189,6 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
-      # attach workspace
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -201,7 +196,9 @@ jobs:
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i project/.circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
+            curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure      
 
 #   run-migrations:

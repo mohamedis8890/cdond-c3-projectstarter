@@ -17,6 +17,7 @@
     update_cache: yes
 
 - name: "Set environment variables"
+  become: yes
   environment:
     ENVIRONMENT: production
     TYPEORM_CONNECTION: postgres

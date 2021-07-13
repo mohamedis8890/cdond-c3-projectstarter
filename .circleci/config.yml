@@ -208,8 +208,6 @@ jobs:
           name: Configure server
           command: |
             curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
-            cat ~/dist/main.js
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure      
 
@@ -283,7 +281,7 @@ jobs:
           command: |
             curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
-            
+
       # Here's where you will add some code to rollback on failure  
 
 #   smoke-test:

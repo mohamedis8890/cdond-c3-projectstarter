@@ -274,12 +274,12 @@ jobs:
           command: |
             apk add --update ansible
             apk update && apk add curl curl-dev bash
-            ansible-playbook --version
       - attach_workspace:
           at: ~/
       - run:
           name: Deploy backend
           command: |
+            ansible-playbook --version
             curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 

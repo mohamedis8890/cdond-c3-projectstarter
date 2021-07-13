@@ -259,24 +259,27 @@ jobs:
 
       # Here's where you will add some code to rollback on failure      
                     
-  # deploy-backend:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update ansible
-  #           apk update && apk add curl curl-dev bash
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Deploy backend
-  #         command: |
-  #           # your code here
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+            apk update && apk add curl curl-dev bash
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Deploy backend
+          command: |
+            curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+            cat ~/dist/main.js
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       # Here's where you will add some code to rollback on failure  
 
 #   smoke-test:
@@ -361,12 +364,12 @@ workflows:
       - configure-infrastructure:
           requires: [deploy-infrastructure]
           
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:

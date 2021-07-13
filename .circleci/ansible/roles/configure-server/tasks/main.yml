@@ -30,7 +30,6 @@
 #     env PATH=$PATH:/usr/local/bin pm2 startup
 
 - name: configure and run server
-  shell: "pm2 start ~/dist/main.js -f"
   environment:
     ENVIRONMENT: production
     TYPEORM_CONNECTION: postgres

@@ -221,7 +221,9 @@ jobs:
       - run:
           name: Run migrations
           command: |
+            npm i
             npm run migrations > migration-result.txt
+            cat migration-result.txt
                         
       - run:
           name: Send migration results to memstash

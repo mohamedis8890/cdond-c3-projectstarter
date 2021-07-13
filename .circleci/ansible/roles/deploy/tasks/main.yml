@@ -23,3 +23,9 @@
     global: yes
     production: yes
     state: present
+
+- name: "copy files"
+  become: yes
+  copy:
+   src: ./dist
+   dest: ~/frontend

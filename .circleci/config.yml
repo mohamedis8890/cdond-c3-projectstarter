@@ -221,7 +221,7 @@ jobs:
       - run:
           name: Run migrations
           command: |
-            npm i
+            cd backend
             npm run migrations > migration-result.txt
             cat migration-result.txt
                         

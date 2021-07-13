@@ -274,6 +274,7 @@ jobs:
           command: |
             apk add --update ansible
             apk update && apk add curl curl-dev bash
+            ansible-playbook --version
       - attach_workspace:
           at: ~/
       - run:

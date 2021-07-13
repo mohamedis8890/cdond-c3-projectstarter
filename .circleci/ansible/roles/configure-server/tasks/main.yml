@@ -24,18 +24,5 @@
     production: yes
     state: present
 
-# - name: Run pm2 as a service
-#   become: yes
-#   shell: |
-#     env PATH=$PATH:/usr/local/bin pm2 startup
 
-- name: configure and run server
-  environment:
-    ENVIRONMENT: production
-    TYPEORM_CONNECTION: postgres
-    TYPEORM_ENTITIES: ./src/modules/domain/**/*.entity.ts
-    TYPEORM_HOST: udapeople-prod.ckoqs4dqnyzx.us-east-2.rds.amazonaws.com
-    TYPEORM_PORT: 5432
-    TYPEORM_USERNAME: postgres
-    TYPEORM_PASSWORD: udapeople123
-    TYPEORM_DATABASE: udapeople-prod
+

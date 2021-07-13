@@ -213,60 +213,71 @@ jobs:
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure      
 
-  # run-migrations:
-  #   docker:
-  #     - image: circleci/node:13.8.0
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Run migrations
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     - run:
-  #         name: Send migration results to memstash
-  #         command: |
-  #           # Your code here
-  #           exit 1
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Run migrations
+          command: |
+            npm run migrations > migration-result.txt
+                        
+      - run:
+          name: Send migration results to memstash
+          command: |
+            if grep -q "has been executed successfully" migration-result.txt; then
+                curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" \
+                  --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+            else
+                echo "Migration failed"
+                exit 1
+            fi
      # Here's where you will add some code to rollback on failure      
 
-#   deploy-frontend:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#             export API_URL="http://${BACKEND_IP}:3030"
-#             echo "${API_URL}"
-#       - run:
-#           name: Deploy frontend objects
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure      
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+      # Since amazon/aws-cli image cannot install dependencies, I worked on a Node image and installed aws on it
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add nodejs
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=`curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/PUBLICDNS`
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            ls ./dist
+      - run:
+          name: Deploy frontend objects
+          command: |
+            npm run build
+
+      # Here's where you will add some code to rollback on failure      
                     
-#   deploy-backend:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Deploy backend
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+  # deploy-backend:
+  #   docker:
+  #     - image: python:3.7-alpine3.11
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           apk add --update ansible
+  #           apk update && apk add curl curl-dev bash
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Deploy backend
+  #         command: |
+  #           # your code here
+      # Here's where you will add some code to rollback on failure  
 
 #   smoke-test:
 #     docker:

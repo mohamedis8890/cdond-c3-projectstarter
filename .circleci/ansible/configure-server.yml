@@ -13,19 +13,16 @@
     - name: "wait 600 seconds for target connection to become reachable/usable."
       wait_for_connection:
         timeout: 600
-  
-  tasks:
-    - name: "Set environment variables"
-      become: yes
-      environment:
-        ENVIRONMENT: production
-        TYPEORM_CONNECTION: postgres
-        TYPEORM_ENTITIES: ./src/modules/domain/**/*.entity.ts
-        TYPEORM_HOST: udapeople-prod.ckoqs4dqnyzx.us-east-2.rds.amazonaws.com
-        TYPEORM_PORT: "5432"
-        TYPEORM_USERNAME: postgres
-        TYPEORM_PASSWORD: udapeople123
-        TYPEORM_DATABASE: udapeople-prod
 
   roles:
     - configure-server
+  
+  environment:
+    ENVIRONMENT: production
+    TYPEORM_CONNECTION: postgres
+    TYPEORM_ENTITIES: ./src/modules/domain/**/*.entity.ts
+    TYPEORM_HOST: udapeople-prod.ckoqs4dqnyzx.us-east-2.rds.amazonaws.com
+    TYPEORM_PORT: "5432"
+    TYPEORM_USERNAME: postgres
+    TYPEORM_PASSWORD: udapeople123
+    TYPEORM_DATABASE: udapeople-prod

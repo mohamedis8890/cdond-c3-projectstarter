@@ -208,7 +208,21 @@ jobs:
           name: Configure server
           command: |
             curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
-            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
+            echo ENVIROMENT=production > "backend/.env"
+            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+            echo TYPEORM_HOST=${TYPEORM_HOST} >> backend/.env
+            echo TYPEORM_PORT=${TYPEORM_PORT} >> backend/.env
+            echo TYPEORM_USERNAME=${TYPEORM_USERNAME} >> backend/.env
+            echo TYPEORM_PASSWORD=${TYPEORM_PASSWORD} >> backend/.env
+            echo TYPEORM_DATABASE=${TYPEORM_DATABASE} >> backend/.env
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml      
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/backend/.env
       # Here's where you will add some code to rollback on failure      
 
   run-migrations:
@@ -221,7 +235,6 @@ jobs:
       - run:
           name: Run migrations
           command: |
-            ls backend
             cd backend
             npm run migrations > migration-result.txt
             cat migration-result.txt
@@ -244,21 +257,28 @@ jobs:
       # Since amazon/aws-cli image cannot install dependencies, I worked on a Node image and installed aws on it
     steps:
       - checkout
+      - restore_cache: 
+          keys: [frontend-build]
       - run:
           name: Install dependencies
           command: |
-            apk add nodejs
+            yum install tar -y
+            yum install gzip -y
+            yum install python3-pip -y
+            yum -y install curl -y
+            curl --silent --location https://rpm.nodesource.com/setup_14.x | bash -
+            yum install -y nodejs
       - run:
           name: Get backend url
           command: |
             BACKEND_IP=`curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/PUBLICDNS`
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            ls ./dist
       - run:
           name: Deploy frontend objects
           command: |
-            npm run build
+            cd frontend
+            aws s3 cp ./dist "s3://udapeople-560c4853-acc2-4511-9873-6b6efca982b1" --recursive
 
       # Here's where you will add some code to rollback on failure      
                     

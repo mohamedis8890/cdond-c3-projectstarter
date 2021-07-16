@@ -1,31 +1,16 @@
 ---
-- name: "update apt packages."
+- name: "Copy files"
   become: yes
-  apt:
-    update_cache: yes
+  unarchive:
+   src: /root/project/backend.tar.gz
+   dest: /home/ubuntu
 
-- name: "upgrade packages"
-  become: yes
-  apt:
-    upgrade: yes
+- name: "Install NPM packages"
+  shell: |
+    cd ~/backend
+    sudo npm install
 
-- name: "install dependencies."
-  become: yes
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
-
-- name: "install pm2"
-  become: yes
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
-
-- name: "copy files"
-  become: yes
-  copy:
-   src: ./dist
-   dest: ~/frontend
+- name: "Start Server"
+  shell: |
+    cd ~/backend
+    pm2 start npm --name backend -- start

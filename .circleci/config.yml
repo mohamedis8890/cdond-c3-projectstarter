@@ -52,10 +52,6 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-      - persist_to_workspace:
-          root: frontend/
-          paths:
-            - dist
       - slack/notify:
           event: fail
           mentions: "#udapeople"
@@ -77,10 +73,6 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-      - persist_to_workspace:
-          root: backend/
-          paths:
-            - dist
       - slack/notify:
           event: fail
           mentions: "#udapeople"
@@ -197,17 +189,17 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
             apk update && apk add curl curl-dev bash
-      - attach_workspace:
-          at: ~/
       - run:
           name: Configure server
+          no_output_timeout: 10m
           command: |
-            curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
             echo ENVIROMENT=production > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
@@ -218,6 +210,7 @@ jobs:
             echo TYPEORM_USERNAME=${TYPEORM_USERNAME} >> backend/.env
             echo TYPEORM_PASSWORD=${TYPEORM_PASSWORD} >> backend/.env
             echo TYPEORM_DATABASE=${TYPEORM_DATABASE} >> backend/.env
+            curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml      
       - persist_to_workspace:
           root: ~/
@@ -230,10 +223,13 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Run migrations
           command: |
             cd backend
+            cat .env
             npm i
             npm run build
             npm run migrations > migration-result.txt
@@ -245,6 +241,7 @@ jobs:
             if grep -q "has been executed successfully" migration-result.txt; then
                 curl -H "Content-Type: text/plain" -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" \
                   --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+                echo "Migration success"
             else
                 echo "Migration failed"
                 exit 1
@@ -274,6 +271,9 @@ jobs:
             BACKEND_IP=`curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/PUBLICDNS`
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
+            cd frontend
+            npm install
+            npm run build
       - run:
           name: Deploy frontend objects
           command: |
@@ -289,17 +289,20 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["22:a6:fe:d1:a2:e7:11:9f:33:49:af:d1:75:2d:b9:c6"]
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible=2.10.7-r0
-            apk update && apk add curl curl-dev bash
       - attach_workspace:
           at: ~/
       - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+            apk update && apk add curl curl-dev bash      
+      - run:
           name: Deploy backend
+          no_output_timeout: 10m
           command: |
             curl -H "token: c2a57397-84c4-42cf-a5b9-ff1bbd0da075" --request GET https://api.memstash.io/values/data > .circleci/ansible/inventory.txt
+            cd . 
+            tar -czvf backend.tar.gz ./backend
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
       # Here's where you will add some code to rollback on failure  
